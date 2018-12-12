@@ -60,7 +60,9 @@
         margin-right: 11px;
         margin-top: -10px;
        }
-       
+       .page-home .home-bot .floor{
+           padding: 0;
+       }
        .page-home .home-bot .floor .box{
         width: 60px;        
         font-size: 24px;
@@ -68,10 +70,11 @@
         margin-top: 17px;
        }
        .page-home .home-bot .floor .menu{
-        width: 84px;
+        width: 106px;
         font-size: 17px;
-        margin-left: -114px;
         margin-top: 18px;
+        position: relative;
+        left: 14px;
        }
        .page-home .home-bot .floor .quzi{
            width: 70px;
@@ -93,6 +96,9 @@
        }     
        .page-home .home-bot .lesson{
         height: 294px;
+       }
+       .home-bot .row{
+        margin-right: -25px;
        }
 } 
 @media screen and (orientation: landscape) {
