@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>克拉申小游戏</title>
+    <link rel="stylesheet" type="text/css" href="../../css/common.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <script type="text/javascript" src="../../js/jquery.min.js"></script>
+    <script type="text/javascript" src="../../js/vue.js"></script>
+</head>
+<body class="page5">
+
+<div id="all">
+    <div class="container bg1" >
+        <div class="mask"></div>
+        <div class="main">
+            <div class="icon-next"></div>
+            <div class="cover"></div>
+
+            <div class="ball">
+                <img src="" alt="">
+                <div class="xian"></div>
+            </div>
+            <div class="txt" v-show="isShowTxt"><p>{{currentData}}</p></div>
+        </div>
+
+        <div class="matter">
+            <div class="start" @click="loadFun"></div>
+            <div class="loading"><p></p><div class="p">正在加载...</div></div>
+
+            <div class="btn-state">
+                <div class="box prev" @click="againPlay">
+                    <div class="xian"></div>
+                    <div class="sj"></div>
+                </div>
+                <div class="box next" @click="nextFun">
+                    <div class="sj"></div>
+                    <div class="xian"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+   <audio src="mp3/page5/s1.mp3" id="myAudio" type="audio/mpeg"></audio>
+</div>
+</body>
+
+<script>
+    var audio = document.getElementById('myAudio'); 
+
+    vm = new Vue({
+        el: '#all',
+        data: {
+            currentData: {}, //当前数据
+            currentIndex: 0, //当前数据下标
+            isFirst: true,
+            isShowTxt: false,
+        },
+        computed: {
+            list: function(){
+                var arr = [];
+                for(var i = 1; i <= 6; i++){
+                    arr.push({
+                        id: i,
+                        img: 'images/page5/ball'+ i +'.png'
+                    })
+                }
+                arr[0].text = ['Red.', 'Red balloon.']
+                arr[1].text = ['Blue.', 'Blue balloon.']
+                arr[2].text = ['Orange.', 'Orange balloon.']
+                arr[3].text = ['Yellow.', 'Yellow balloon.']
+                arr[4].text = ['Green.', 'Green balloon.']
+                arr[5].text = ['Purple.', 'Purple balloon.']
+                return arr
+            },
+            musicArr: function(){
+                var arr = [];
+                for(var i = 1; i<= 6; i++){
+                    arr.push('mp3/page5/s' + i +'.mp3')
+                }
+                return arr;
+            }
+        },
+        methods: {
+            init: function(){
+                $('.ball').show()
+                this.playFun()
+            },
+            loadFun: function(){
+                var _this = this;
+                var w = 1;
+                $('.main .cover').hide()
+                $('.matter .start').hide()
+                $('.loading').show()
+                audio.play()
+                audio.pause()
+                $('.ball').hide()
+                var inter = setInterval(function(){
+                    if(w <= 100){
+                        $('.loading p').css('width', w + '%')
+                    }else{
+                        clearInterval(inter)
+                        $('.loading').hide()
+                        setTimeout(_this.init, 200)
+                    }
+                    w += 1;
+                }, 1)
+            },
+            /*刷新*/
+            refreshFun: function(){
+                this.currentIndex = 0;
+                $('.main .icon-next').hide()
+                this.againPlay()
+            },
+            /*重播当前的*/
+            againPlay: function(){
+                $('.btn-state').hide()
+                $('.ball').removeClass('suox movet')
+                $('.ball img').attr('src', '')
+                this.playFun()
+            },
+            /*下一个*/
+            nextFun: function(){
+                this.currentIndex += 1;
+                if(this.currentIndex < this.list.length){
+                    this.againPlay()
+                }else{
+                    $('.btn-state').hide()
+                    $('.main .icon-next').show()
+                }
+            },
+            playFun: function(){
+                var obj = this.list[this.currentIndex]
+                var _this = this;
+                var time = obj.time || 1000;
+                this.currentData = obj.text[0]
+                audio.src = this.musicArr[this.currentIndex]
+                audio.play()
+
+                $('.ball img').attr('src', obj.img)
+                $('.ball').addClass('suox')
+                setTimeout(function(){
+                    $('.ball').addClass('movet')
+                    _this.currentData = obj.text[1]
+                }, 1500)
+                setTimeout(function(){
+                    $('.btn-state').css('display', 'flex')
+                }, 4000)
+            }
+        }
+    })
+</script>
+</html>

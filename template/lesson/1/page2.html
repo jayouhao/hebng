@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>克拉申小游戏</title>
+    <link rel="stylesheet" type="text/css" href="../../css/common.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <script type="text/javascript" src="../../js/jquery.min.js"></script>
+    <script type="text/javascript" src="../../js/vue.js"></script>
+</head>
+<body class="page2">
+
+<div id="all">
+    <div class="container bg1" >
+        <div class="mask"></div>
+        <div class="main">
+            <div class="icon-next"></div>
+            <div class="cover"></div>
+
+            <div class="yuan face">
+                <canvas id="yuan-canvas"></canvas>
+                <div class="face1 posa">
+                    <div class="meimao"></div>
+                    <div class="yanjin yj-l"></div>
+                    <div class="yanjin yj-r"></div>
+                    <div class="zui"></div>
+                </div>
+                <div class="face2 posa">
+                    <div class="meimao"></div>
+                    <div class="yanjin yj-l"></div>
+                    <div class="yanjin yj-r"></div>
+                    <div class="zui"></div>
+                </div>
+                <div class="face3 posa">
+                    <div class="meimao"></div>
+                    <div class="yanjin yj-l"></div>
+                    <div class="yanjin yj-r"></div>
+                    <div class="zui"></div>
+                </div>
+                <div class="face4 posa">
+                    <div class="meimao"></div>
+                    <div class="yanjin yj-l"></div>
+                    <div class="yanjin yj-r"></div>
+                    <div class="zui"></div>
+                </div>
+            </div>
+            <div class="yuan kong"></div>
+            <div class="txt" v-show="isShowTxt"><p>{{currentData.text}}</p></div>
+        </div>
+
+        <div class="matter">
+            <canvas id="draw-canvas" class="draw-can"></canvas>
+
+            <div class="start" @click="loadFun"></div>
+            <div class="loading"><p></p><div class="p">正在加载...</div></div>
+            <div class="btn-state">
+                <div class="box prev" @click="againPlay">
+                    <div class="xian"></div>
+                    <div class="sj"></div>
+                </div>
+                <div class="box next" @click="nextFun">
+                    <div class="sj"></div>
+                    <div class="xian"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <audio src="mp3/page2/s1.mp3" id="myAudio" type="audio/mpeg"></audio>
+</div>
+</body>
+
+<script>
+    var audio = document.getElementById('myAudio'); 
+    var list = [
+        { id: 1, text: 'Draw a face.' },
+        { id: 2, text: 'Draw a happy face.' },
+        { id: 3, text: 'Draw a sad face.' },
+        { id: 4, text: 'Draw an angry face.' },
+    ]
+    
+    vm = new Vue({
+        el: '#all',
+        data: {
+            list: list,
+            currentData: {}, //当前数据
+            currentIndex: 0, //当前数据下标
+            isShowTxt: false, //是否显示文字
+        },
+        computed: {
+            musicArr: function(){
+                var arr = [];
+                for(var i = 1; i<= 4; i++){
+                    arr.push('mp3/page2/s' + i +'.mp3')
+                }
+                return arr;
+            }
+        },
+        methods: {
+            loadFun: function(){
+                var _this = this;
+                var w = 1;
+                $('.main .cover').hide()
+                $('.matter .start').hide()
+                $('.loading').show()
+                audio.play()
+                audio.pause()
+                $('.loading').show()
+                $(drawCanvas).show()
+                var inter = setInterval(function(){
+                    if(w <= 100){
+                        $('.loading p').css('width', w + '%')
+                    }else{
+                        clearInterval(inter)
+                        $('.loading').hide()
+                        setTimeout(drawArc, 150)
+                    }
+                    w += 1;
+                }, 1)
+            },
+            /*刷新*/
+            refreshFun: function(){
+                this.currentIndex = 0;
+                $('.main .icon-next').hide()
+                this.againPlay()
+            },
+            /*下一个*/
+            nextFun: function(){
+                this.currentIndex += 1;
+                if(this.currentIndex < this.list.length){
+                    this.againPlay()
+                }else{
+                    $('.btn-state').hide()
+                    $('.main .icon-next').show()
+                }
+            },
+            /*重播当前的*/
+            againPlay: function(){
+                dctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height)
+                ctx.clearRect(0, 0, canvas.width, canvas.height)
+                $('.main .kong').hide()
+                $('.btn-state').hide()
+                $('.main .face').addClass('suox')
+                setTimeout(function(){
+                    $('.main .face .posa').hide()
+                    $('.main .face .posa').removeClass('show')
+                    $('.main .face').removeClass('suox')
+                    drawArc()
+                }, 500)
+                
+            },
+        }
+    })
+</script>
+
+<script>
+
+
+init()
+function init(){
+    canvas = document.getElementById("yuan-canvas");
+    ctx = canvas.getContext("2d");
+    var width = $('.main .face').width()
+    canvas.height = width;
+    canvas.width = width;
+
+    drawCanvas = document.getElementById("draw-canvas");
+    dctx = drawCanvas.getContext("2d");
+    drawCanvas.height = $('.main').height();
+    drawCanvas.width = $('.main').width();
+    $(drawCanvas).hide()
+
+}
+
+
+function drawArc(){
+    var w = 5;
+    var radius = (canvas.width - w) / 2;
+    var x = canvas.width / 2;
+    var y = canvas.height / 2;
+    var pi = Math.PI / 90;
+    var num = 0;
+    
+    var $face = $('.main .face .posa').eq(vm.$data.currentIndex);
+    var obj = vm.$data.list[vm.$data.currentIndex];
+    vm.$data.currentData = obj;
+    
+    $face.show()
+    $face.children().css('opacity', 0)
+
+    audio.src = vm.musicArr[vm.$data.currentIndex]
+    audio.play()
+    
+    interyuan = setInterval(function(){
+        num++;
+        if(num > 180){
+            clearInterval(interyuan)
+            $face.addClass('show')
+            animationFun()
+        }else{
+            ctx.clearRect(0, 0, canvas.width, canvas.height)
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, pi * num);
+            ctx.lineWidth=w;
+            ctx.stroke();
+        }
+    }, 1)
+}
+
+
+function animationFun(){
+    setTimeout(function(){
+        $('.main .kong').show()
+    }, 1500)
+    setTimeout(function(){
+        $('.btn-state').css('display', 'flex')
+    }, 4000)
+}
+
+var flag = IsPC()
+if(flag){
+    start = 'mousedown'
+    move = 'mousemove'
+    end = 'mouseup'
+    out = 'mouseout'
+}else{
+    start = 'touchstart'
+    move = 'touchmove'
+    end = 'touchend'
+    out = 'touchend'
+}
+
+$(drawCanvas).on(start, function(event){
+    event.preventDefault()
+    event.stopPropagation()
+    var x, y;
+    if(flag){
+        x = event.pageX - $(this).offset().left
+        y = event.pageY - $(this).offset().top
+    }else{
+        var touch1 = event.originalEvent.targetTouches[0]
+        x = touch1.pageX - $(this).offset().left
+        y = touch1.pageY - $(this).offset().top
+    }
+    $(this).data('beforeX', x)
+    $(this).data('beforeY', y)
+    draw(x, y)
+    $(this).on(move, function(ev) {
+        ev.preventDefault()
+        ev.stopPropagation()
+        var bex = $(this).data('beforeX')
+        var bey = $(this).data('beforeY')
+        var x1, y1
+        if(flag){
+            x1 = ev.pageX - $(this).offset().left
+            y1 = ev.pageY - $(this).offset().top
+        }else{
+            var touch2 = ev.originalEvent.targetTouches[0]
+            x1 = touch2.pageX - $(this).offset().left
+            y1 = touch2.pageY - $(this).offset().top
+        }
+        $(this).data('beforeX', x1)
+        $(this).data('beforeY', y1)
+        draw(bex, bey, x1, y1)
+    }).on(end, function() {
+        $(this).off(move)
+    })
+}).on(out, function(){
+    $(this).off(move)
+})
+
+
+//画图
+function draw(){
+    dctx.beginPath()
+    // console.log(arguments)
+    if(arguments.length < 4){
+        dctx.arc(arguments[0], arguments[1], 1, 0, 2*Math.PI)
+        dctx.fillStyle = '#000'
+        dctx.fill()
+    }else{
+        dctx.moveTo(arguments[0], arguments[1])
+        dctx.lineTo(arguments[2], arguments[3])
+        dctx.lineWidth = 4
+        dctx.strokeStyle = '#000'
+        dctx.stroke()
+    }
+    dctx.closePath()
+}
+
+
+//判断是移动端还是PC端
+function IsPC() {
+    var userAgentInfo = navigator.userAgent;
+    var Agents = ["Android", "iPhone",
+                "SymbianOS", "Windows Phone",
+                "iPad", "iPod"];
+    var flag = true;
+    for (var v = 0; v < Agents.length; v++) {
+        if (userAgentInfo.indexOf(Agents[v]) > 0) {
+            flag = false;
+            break;
+        }
+    }
+    return flag;
+}
+
+</script>
+
+</html>

@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>克拉申小游戏</title>
+    <link rel="stylesheet" type="text/css" href="../../css/common.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <script type="text/javascript" src="../../js/jquery.min.js"></script>
+    <script type="text/javascript" src="../../js/vue.js"></script>
+</head>
+<body class="page8">
+
+<div id="all">
+    <div class="container bg1" >
+        <div class="mask"></div>
+        <div class="main">
+            
+            <div class="cover"></div>
+
+            <canvas id="myCanvas"></canvas>
+            <div class="list row">
+                <div class="box" v-for="m in 4">
+                    <ul>
+                        <li v-for="n in numArr"><p>{{n}}</p></li>
+                        <li v-for="n in numArr"><p>{{n}}</p></li>
+                        <li v-for="n in numArr"><p>{{n}}</p></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="matter">
+            <div class="ans-list row">
+                <div class="left row">
+                    <div class="ball box" v-for="(item, index) in ballArr">
+                        <img :src="item.img" alt="">
+                        <div class="ring" :data-id="item.id" @click="chooseAns"></div>
+                    </div>
+                </div>
+                <div class="right row">
+                    <div class="face box" v-for="(item, index) in faceArr">
+                        <img :src="item.img" alt="">
+                        <div class="ring" :data-id="item.id" @click="chooseAns"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="start" @click="loadFun"></div>
+            <div class="icon-next"></div>
+            <div class="loading"><p></p><div class="p">正在加载...</div></div>
+
+            <div class="word" v-show="isShowTxt"><p>{{currentData.text}}</p></div>
+
+            
+        </div>
+
+    </div>
+
+    <audio src="mp3/page8/s1.mp3" id="myAudio" type="audio/mpeg"></audio>
+    <audio src="mp3/page8/deng.mp3" id="dengAudio" type="audio/mpeg"></audio>
+    <audio src="mp3/page8/num.mp3" id="numAudio" type="audio/mpeg"></audio>
+</div>
+</body>
+
+<script>
+    numAudio = document.getElementById('numAudio')
+    dengAudio = document.getElementById('dengAudio')
+    audio = document.getElementById('myAudio'); 
+    var list = [
+        {id: 1, ansid: 6, text: 'Click on the purple face.'},
+        {id: 2, ansid: 8, text: 'Click on the sad face.'},
+        {id: 3, ansid: 1, text: 'Click on the red balloon.'},
+        {id: 4, ansid: 11, text: 'Click on the green face.'},
+        {id: 5, ansid: 5, text: 'Click on the angry face.'},
+        {id: 6, ansid: 14, text: 'Click on the yellow face.'},
+        {id: 7, ansid: 7, text: 'Click on the orange face.'},
+        {id: 8, ansid: 10, text: 'Click on the happy face.'},
+        {id: 9, ansid: 9, text: 'Click on the blue face.'},
+        {id: 10, ansid: 13, text: 'Click on the red face.'},
+    ]
+    vm = new Vue({
+        el: '#all',
+        data: {
+            list: list,
+            currentData: {}, //当前数据
+            currentIndex: 0, //当前数据下标
+            numArr: [0,1,2,3,4,5,6,7,8,9],
+            score: [0, 0, 0, 0],
+            isShowTxt: false,
+        },
+        computed: {
+            ballArr: function(){
+                var arr = [];
+                for(var i = 1; i <= 4; i++){
+                    arr.push({
+                        id: i,
+                        img: 'images/page8/ball'+ i +'.png'
+                    })
+                }
+                return arr;
+            },
+            faceArr: function(){
+                var arr = [];
+                for(var i = 1; i <= 10; i++){
+                    arr.push({
+                        id: i + 4,
+                        img: 'images/page8/face'+ i +'.png'
+                    })
+                }
+                return arr;
+            },
+            musicArr: function(){
+                var arr = [];
+                for(var i = 1; i <= 10; i++){
+                    arr.push('mp3/page8/s' + i +'.mp3')
+                }
+                return arr;
+            }
+        },
+        methods: {
+            loadFun: function(){
+                var _this = this;
+                var w = 1;
+                $('.main .cover').hide()
+                $('.matter .start').hide()
+                $('.loading').show()
+                vhome = window.parent.vhome;
+                audio.play()
+                audio.pause()
+                numAudio.play()
+                numAudio.pause()
+                dengAudio.play()
+                dengAudio.pause()
+                var inter = setInterval(function(){
+                    if(w <= 100){
+                        $('.loading p').css('width', w + '%')
+                    }else{
+                        clearInterval(inter)
+                        $('.loading').hide()
+                        setTimeout(init, 100)
+                    }
+                    w += 1;
+                }, 1)
+            },
+            /*刷新*/
+            refreshFun: function(){
+                numAudio.pause(); 
+                dengAudio.pause(); 
+                audio.pause();
+                cancelAnimationFrame(stopDeng)
+                
+                this.againPlay()
+            },
+            /*重播当前的*/
+            againPlay: function(){
+                ctx.clearRect(0, 0, canvas.width, canvas.height)
+                this.currentIndex = 0;
+                this.score = [0,0,0,0]
+                $('.main').removeClass('scale scale9')
+                $('.ans-list').css('opacity', 0)
+                $('.ans-list').css('display', 'flex')
+                $('.btn-main').hide()
+                $('.ans-list').removeClass('on')
+                $('.ans-list .ring').removeClass('on')
+                $('.matter .icon-next').hide()
+                startAnim()
+            },
+            playFun: function(){
+                if(this.currentIndex < this.list.length){
+                    var obj = this.list[this.currentIndex]
+                    var _this = this;
+                    var i = 0;
+                    var time = obj.time || 1000;
+                    this.currentData = obj
+                    audio.src = this.musicArr[this.currentIndex]
+                    audio.play()
+                    succ_fl = false;
+                    $('.ans-list').addClass('on')
+                    $('.ans-list .ring').removeClass('on')
+                }else{
+                    endAnim()
+                }
+            },
+            chooseAns: function(e){
+                //选择答案
+                var id = $(e.target).data('id')
+                if(id === this.currentData.ansid){
+                    this.currentIndex += 1;
+                    if(this.currentIndex < this.list.length){
+                        this.score[1] += 1;
+                        $('.ans-list').removeClass('on')
+                        $(e.target).addClass('on')
+                        initWenzi()
+                    }else{
+                        this.score[1] = 0;
+                        this.score[0] = 1;
+                        initWenzi()
+                    }
+                }
+            }
+        }
+    })
+
+    $('.btn-main .box').on('mouseover', function(){
+        $(this).addClass('on')
+    })
+    $('.btn-main .box').on('mouseout', function(){
+        $(this).removeClass('on')
+    })
+
+
+</script>
+
+<script>
+
+var imgObj = {}; //存放图片
+var pi = Math.PI/180;
+
+
+
+//初始化
+
+function init(){
+    canvas = document.getElementById("myCanvas");
+    ctx = canvas.getContext("2d");
+    canvas.width = 450;
+    canvas.height = 300;
+    
+    
+
+    var img = new Image();
+    img.src = 'images/page8/main.png';
+
+    var img0 = new Image();
+    img0.src = 'images/page8/deng.png';
+
+    var arr = []
+    for(var i = 1; i <= 2; i++){
+        var img3 = new Image();
+        img3.src = 'images/page8/yuan'+ i +'.png';
+        arr.push({
+            img: img3,
+            w: 40,
+            h: 40
+        })
+    }
+
+    imgObj.bg = {
+        img: img,
+        w: 340,
+        h: 183,
+        x: 40,
+        y: 40
+    }
+
+    imgObj.lamp = {
+        img: img0,
+        w: 200,
+        h: 62,
+        x: 190,
+        y: 25
+    }
+    imgObj.yuan = arr
+    imgObj.size = {
+        sy: 40
+    }
+    
+    wzbox = $('.list .box')
+    wz_h = $('.list .box').height()
+    anbox = [];
+    var arr1 = $('.ans-list .ball')
+    var arr2 = $('.ans-list .face')
+    anbox.push(arr1[0])
+    anbox.push(arr1[1])
+    for(var i = 0; i < 5; i++){
+        anbox.push(arr2[i])
+    }
+    anbox.push(arr1[2])
+    anbox.push(arr1[3])
+    for(var i = 5; i < 10; i++){
+        anbox.push(arr2[i])
+    }
+    
+    startAnim()
+}
+
+//开始动画
+function startAnim(){
+    $('.ans-list .box').hide()
+    $('.ans-list').css('opacity', 1)
+    var i = 0;
+    var inter = setInterval(function(){
+        if(i === anbox.length){
+            clearInterval(inter)
+            $('.main').addClass('scale')
+            initAnim()
+            setTimeout(function(){
+                initWenzi()
+            }, 300)
+        }else{
+            $(anbox[i]).show()
+        }
+        i++
+    }, 50)
+}
+
+//结束动画
+endAnim = function(){
+    var i = anbox.length;
+    var inter = setInterval(function(){
+        if(i < 0){
+            clearInterval(inter)
+            $('.matter .icon-next').show()
+            $('.main').addClass('scale9')
+            $('.ans-list').hide()
+            vhome.showMainBtnFun()
+        }else{
+            $(anbox[i]).hide()
+        }
+        i--
+    }, 50)
+}
+
+//文字动画
+function initWenzi(){
+    numAudio.load()
+    numAudio.play()
+    for(var i = 0; i < wzbox.length; i++){
+        wzbox[i].value = vm.$data.score[i];
+        var num = vm.$data.score[i];
+        var oul = wzbox[i].getElementsByTagName("ul")[0];
+        var oli = oul.getElementsByTagName('li');
+        var size = oli.length;
+        var tops = (num) * wz_h;
+        var a = Math.floor(Math.random()*10)
+        var wz_top = (20 + a) * wz_h;
+        oul.style.top = -wz_top + 'px'
+        starmove(oul,{"top":-(tops)}, function(){
+            setTimeout(initDeng, 500)
+        })
+    }
+}
+
+function initAnim(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.drawImage(imgObj.bg.img, imgObj.bg.x, imgObj.bg.y, imgObj.bg.w, imgObj.bg.h)
+}
+var dengFlag = true;//灯动画开始
+
+function initDeng(){
+    dengArr = [
+        {rotate: 180, scale: 1},
+        {rotate: 90, scale: 1.1},
+    ]
+    yuanArr = [
+        {x: 172, y: 53, w: 12, h: 12, img: imgObj.yuan[1].img, move: 'r', num: 0, scale: 1},
+        {x: 172, y: 50, w: 7, h: 7, img: imgObj.yuan[0].img, move: 'l', num: 40, scale: 1},
+    ]
+    deng_num = 0;
+    // dengAudio.load()
+    dengAudio.play()
+    dengFlag = true;
+    dengAnim()
+}
+
+
+
+//灯动画
+function dengAnim(){
+    deng_num++;
+    
+    initAnim()
+    var a = 0;
+    for(var i = 0; i < dengArr.length; i++){
+        dengArr[i].rotate -= 5;
+        if(dengArr[i].rotate >= 90){
+            dengArr[i].scale += 0.002
+        }else if(dengArr[i].rotate < 90 && dengArr[i].rotate >= 0){
+            dengArr[i].scale -= 0.002
+        }else{
+            dengArr[i].scale -= 0.03
+        }
+        ctx.save()
+        ctx.translate(imgObj.lamp.x, imgObj.lamp.y + imgObj.lamp.h / 2);
+        ctx.rotate(dengArr[i].rotate * pi);
+        ctx.scale(dengArr[i].scale, dengArr[i].scale);
+        ctx.drawImage(imgObj.lamp.img, 0, -imgObj.lamp.h / 2, imgObj.lamp.w, imgObj.lamp.h)
+        ctx.restore();
+        if(dengArr[i].rotate < 90){
+            a++;
+        }
+        if(dengArr[i].rotate < -90){
+            dengArr.splice(i, 1)
+        }
+    }
+    var b = deng_num / 60;
+    if(a === dengArr.length && b < 5){
+        dengArr.push({rotate: 220, scale: 0.8})
+    }
+
+    for(var i = 0; i < yuanArr.length; i++){
+        if(yuanArr[i].move === 'r'){
+            yuanArr[i].num += 2;
+            if(yuanArr[i].num > 30){
+                yuanArr[i].move = 'l'
+            }
+        }else{
+            yuanArr[i].num -= 2;
+            if(yuanArr[i].num < 10){
+                yuanArr[i].move = 'r'
+            }
+        }
+        if(yuanArr[i].num > 15){
+            yuanArr[i].scale -= 0.01
+        }else{
+            yuanArr[i].scale += 0.01
+        }
+        var x = yuanArr[i].x + yuanArr[i].num;
+        ctx.save()
+        ctx.translate(x, yuanArr[i].y);
+        ctx.scale(yuanArr[i].scale, yuanArr[i].scale);
+        ctx.drawImage(yuanArr[i].img, 0, 0, yuanArr[i].w, yuanArr[i].h)
+        ctx.restore();
+    }
+    
+    if(b < 6){
+        stopDeng = requestAnimationFrame(dengAnim);
+    }else{
+        if(dengFlag){
+            dengFlag = false;
+            initAnim()
+            setTimeout(function(){
+                vm.playFun()
+            }, 1000)
+        }
+    }
+    
+}
+
+function getStyle(obj,name){
+   return obj.currentStyle?obj.currentStyle[name]:getComputedStyle(obj,false)[name];
+}
+function starmove(obj,json,funEnd){
+    clearInterval(obj.timer);
+    var Bstop=true;
+    obj.timer=setInterval(function(){
+        for(var attr in json){
+           var speed=0;
+           var cur=parseInt(getStyle(obj,attr));
+           speed=(json[attr]-cur)/20;
+           speed=speed>0?Math.ceil(speed):Math.floor(speed); 
+           if(cur!=json[attr]){
+                Bstop=false;
+           }else{
+                Bstop=true;
+           }
+
+           obj.style[attr]=cur+speed+"px";
+        }
+        if(Bstop){
+            clearInterval(obj.timer);
+            if(funEnd){
+                funEnd();
+            }
+        }
+    },30)
+ }
+
+</script>
+
+</html>

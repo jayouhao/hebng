@@ -1,17 +1,382 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
-    <link rel="stylesheet" href="./bootstrap.min.css">
-    <link rel="stylesheet" href="./base.css">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />  
+    <title>克拉申小游戏</title>
+    <link rel="stylesheet" href="./css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/common1.css">
+    <link rel="stylesheet" type="text/css" href="css/home_style.css">
+    <link rel="stylesheet" href="./css/base.css">
+    <script type="text/javascript" src="js/jquery-3.1.1.min.js"></script>
+    <script type="text/javascript" src="js/vue.js"></script>
+   
 </head>
-<body>
-    <div class="lei_ming">
-        司法考试地方士大夫司法考试地方士大夫司法考试地方士大夫司法考试地方士大夫司法考试地方士大夫司法考试地方士大夫司法考试地方士大夫司法考试地方士大夫司法考试地方士大夫司法考试地方士大夫司法考试地方士大夫司法考试地方士大夫司法考试地方士大夫司法考试地方士大夫司法考试地方士大夫司法考试地方士大夫司法考试地方士大夫司法考试地方士大夫司法考试地方士大夫司法考试地方士大夫
-        司法考试地方士大夫司法考试地方士大夫
+<!-- page-home -->
+<body class="page-home webpBack">
+    <div id="print">
+    <div id="home" class="all">
+        <div class="home-mask"></div>
+
+        <!-- 内部 -->
+        <div class="home-inter">
+            <iframe :src="hostUrl" id="page"></iframe>
+        </div>
+
+        <!-- 开始图片 -->
+        <div class="home-start">
+            <div class="home-mask"></div>
+            <div class="img"></div>
+            <div class="start" @click="startGames"></div>
+        </div>
+
+        <!-- mycamp 弹窗 -->
+        <div class="home-camp" v-show="isShowMyCamp">
+            <!-- <iframe src="template/mycamp.html" id="home-camp"></iframe> -->
+            <div class="mask"></div>
+            <div class="matter">
+                <div class="top column">
+                    <div class="tit row">
+                        <div class="sj"></div>
+                        <div class="txt">EDIT  PROFILE</div>
+                    </div>
+                    <div class="box row">
+                        <div class="li row">
+                            <p>NAME</p>
+                            <b>HENRY SMITH</b>
+                        </div>
+                        <div class="li row">
+                            <p>DATE</p>
+                            <span>9/19/2018</span>
+                        </div>
+                    </div>
+                    <div class="box row">
+                        <div class="li row">
+                            <p>LEVEL</p>
+                            <b>BASE CAMP</b>
+                        </div>
+                        <div class="li row">
+                            <p>SCORE</p>
+                            <span>14000/14000PTS</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cmain">
+                    <div class="head">
+                        <ul class="row">
+                            <li class="row" v-for="(it, is) in lessonList" :class="lessonIndex === is ? 'on':''">
+                                <div class="p">LESSONS</div>
+                                <div class="num">{{it.scope}}</div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="intr">
+                        <div class="tit row">
+                            <div class="h3">Base Camp</div>
+                            <div class="right row">
+                                <div class="dd row">
+                                    <div class="icon i1"></div>
+                                    <div class="p">GOLD</div>
+                                    <div class="num">14</div>
+                                </div>
+                                <div class="dd row">
+                                    <div class="icon i2"></div>
+                                    <div class="p">SILVER</div>
+                                    <div class="num">14</div>
+                                </div>
+                                <div class="dd row">
+                                    <div class="icon i3"></div>
+                                    <div class="p">BRONZE</div>
+                                    <div class="num">14</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="list row">
+                            <div class="box" v-for="(it, is) in lessonList[lessonIndex].list" @click="campChooseLessonFun" :data-id="it.id" :class='it.isFlag ? "on":""'>
+                                <p>{{it.id}}</p>
+                                <p v-if="it.score">{{it.score}}pt</p>
+                            </div>
+                        </div>
+                        <div class="bot row">
+                            <div class="dd row">
+                                <div class="p">TEST</div>
+                            </div>
+                            <div class="dd row">
+                                <div class="icon i4"></div>
+                                <div class="p">PASS</div>
+                            </div>
+                            <div class="dd row">
+                                <div class="icon i4"></div>
+                                <div class="p">FALL</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 外部 -->
+        <div class="home-main">
+            <div class="logo"><img src="images/logo.png" alt=""></div>
+
+            <!-- 课程 第几课 第几节 -->
+            <div class="course row">
+                <div class=" row">
+                    <div class="box" v-for="n in lessonArr">{{n}}</div>
+                </div>
+                <div class="section box">{{currentSection}}</div>
+            </div>
+
+            <!-- 操作 -->
+            <div class="top row">
+                <div class="icon icon-refresh" @click="refreshSectionFun" title="刷新"></div>
+                <div class="icon icon-prev" @click="prevSectionFun" title="上一节"></div>
+                <div class="icon icon-next" @click="nextSectionFun" title="下一节"></div>
+                <div class="icon icon-txt" @click="changeShowTxt" title="显示文字"></div>
+
+                <div class="mycamp" @click="showMycampFun">myfruit</div>
+            </div>
+            <div class="btn-main row" v-if="isShowMainBtn">
+                <div class="left">
+                    <!-- <div class="box lesson">
+                        <div class="icon"></div>
+                        <p>lesson</p>
+                    </div> -->
+                    <div class="box quiz" @click="refreshSectionFun">
+                        <div class="icon"></div>
+                        <p>quiz</p>
+                    </div>
+                </div>
+                <div class="gold"><p>gold</p></div>
+                <!-- <div class="box continue">
+                    <div class="icon"></div>
+                    <p>continue</p>
+                </div> -->
+            </div>
+        </div>
+
+        <div class="home-bot">
+            <div class="floor row">
+                <div class="menu btn1" @click="showLessonPop">MENU</div>
+
+                <div class="sec-all row">
+                    <div class="box" :class="currentSection == n ? 'on':''" v-for="n in 7" :data-index="n" @click="chooseSectionFun">{{n}}</div>
+                    <div class="box quzi" :class="currentSection == 8 ? 'on':''" :data-index="8" @click="chooseSectionFun">QUIZ</div>
+                </div>
+            </div>
+
+            <div class="lesson">
+                <div class="intr">
+                    <div class="scope" v-for="(it, is) in lessonList">
+                        <div class="tit row" @click="showLessonSelect">
+                            <div class="h3">LESSON</div>
+                            <div class="p">{{it.scope}}</div>
+                        </div>
+                        <div class="list row">
+                            <div class="box" :class="cit.isFlag ? '':'has' " v-for="(cit, cis) in it.list" :data-pindex="is" :data-cindex="cis" @click="chooseLessonFun">{{cit.id}}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
+</div>
 </body>
+
+<script>
+campPage = null;
+vhome = new Vue({
+    el: '#home',
+    data: {
+        currentLesson: 1,//当前是第几课
+        currentSection: 1, //当前是第几节
+        lessonIndex: 0, //mycamp时下标
+        isShowMyCamp: false, //是否显示Mycamp
+        isShowMainBtn: false, //是否显示btn-main
+    },
+    computed: {
+        lessonList: function(){
+            var len = 24;
+            var arr = [];
+            var a = 1;
+            var has = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];//有的课程
+            for(var i = 0; i < 4; i++){
+                var obj = {
+                    scope: a + '-' + (a + len - 1),
+                    list: []
+                }
+                for(var j = 0; j < len; j++){
+                    var o = {
+                        id: a,
+                        isFlag: false
+                    }
+                    var k = has.indexOf(a);
+                    if(k >= 0){
+                        o.isFlag = true
+                        o.score = 1000
+                    }
+                    obj.list.push(o)
+                    a++;
+                }
+                arr.push(obj)
+            }
+            return arr;
+        },
+        lessonArr: function(){
+            /*将第1课转化为001*/
+            var a = this.currentLesson;
+            if(a < 10){
+                a = '00' + a;
+            }else if(a < 100){
+                a = '0' + a;
+            }else{
+                a = "" + a;
+            }
+            return a.split('')
+        },
+        hostUrl: function(){
+            /*课程路径*/
+            var url = 'template/lesson/' + this.currentLesson + '/page' + this.currentSection + '.html';
+            $('.home-start').show()
+            this.isShowMainBtn = false;
+            return url;
+        }
+    },
+    methods: {
+        init: function(){
+            vm = page.contentWindow.vm;
+            this.initBtn()
+        },
+        /*开始游戏*/
+        startGames: function(){
+            $('.home-start').hide()
+            $('.home-bot .floor .menu').removeClass('on')
+            $('.home-bot .lesson').hide()
+            vm.loadFun()
+        },
+        /*初始化页面按钮*/
+        initBtn: function(){
+            if(this.currentLesson === 1 && this.currentSection === 1){
+                $('.icon-prev').addClass('has')
+            }else{
+                $('.icon-prev').removeClass('has')
+            }
+            $('.icon-txt').removeClass('on')
+            // $('.sec-all .box').eq(this.currentSection - 1).addClass('on').siblings().removeClass('on')
+        },
+        /*选择小节*/
+        chooseSectionFun: function(e){
+            var index = parseInt(e.target.dataset.index);
+            this.currentSection = index;
+        },
+        /*重新播放当前小节*/
+        refreshSectionFun: function(){
+            this.isShowMainBtn = false;
+            vm.refreshFun()
+        },
+        /*显示btn-main*/
+        showMainBtnFun: function(){
+            this.isShowMainBtn = true;
+        },
+        /*下一节*/
+        nextSectionFun: function(){
+            if($('.icon-next').hasClass('has')){
+                return;
+            }
+            if(this.currentSection === 8){
+                this.currentLesson += 1;
+                this.currentSection = 1;
+            }else{
+                this.currentSection += 1;
+            }
+        },
+        /*上一节*/
+        prevSectionFun: function(){
+            if($('.icon-prev').hasClass('has')){
+                return;
+            }
+            if(this.currentSection === 1){
+                this.currentLesson -= 1;
+                this.currentSection = 8;
+            }else{
+                this.currentSection -= 1;
+            }
+        },
+        /*显示或隐藏文字*/
+        changeShowTxt: function(){
+            if(!$('.icon-txt').hasClass('has')){
+                $('.icon-txt').toggleClass('on')
+                if($('.icon-txt').hasClass('on')){
+                    vm.isShowTxt = true
+                }else{
+                    vm.isShowTxt = false
+                }
+            }
+        },
+        /*显示camp弹窗*/
+        showMycampFun: function(){
+            this.isShowMyCamp = !this.isShowMyCamp;
+            if(this.isShowMyCamp){
+                $('.mycamp').addClass('on')
+            }else{
+                $('.mycamp').removeClass('on')
+            }
+        },
+        /*在camp弹窗中选择课程*/
+        campChooseLessonFun: function(e){
+            var box = $(e.target);
+            if(!box.hasClass('box')){
+                box = box.closest('.box')
+            }
+            if(!box.hasClass('on')){
+                return
+            }
+            var num = box.data('id');
+            this.currentLesson = num;
+            this.currentSection = 1;
+            this.showMycampFun()
+        },
+        /*选择课程*/
+        chooseLessonFun: function(e){
+            console.log(e);
+            var box = $(e.target)
+            if(box.hasClass('has')){
+                return
+            }
+            var pindex = box.data('pindex');
+            var cindex = box.data('cindex');
+            var num = this.lessonList[pindex].list[cindex].id;
+            this.currentLesson = num;
+            this.currentSection = 1;
+            console.log(this.currentLesson);
+            $('.home-bot .lesson .box').removeClass('on')
+            box.addClass('on')
+        },
+        /*显示课程下拉框*/
+        showLessonSelect: function(e){
+            // console.log(e);
+            var scope = $(e.target).closest('.scope');
+            scope.toggleClass('on').siblings().removeClass('on')
+        },
+        /*显示所有课程弹窗*/
+        showLessonPop: function(){
+            $('.home-bot .floor .menu').toggleClass('on')
+            $('.home-bot .lesson').toggle()
+        },
+    }
+})
+
+page = document.getElementById('page')
+
+page.onload = function(){
+    vhome.init()
+}
+
+
+
+</script>
+ <script type="text/javascript" src="./js/index.js"></script>
 </html>

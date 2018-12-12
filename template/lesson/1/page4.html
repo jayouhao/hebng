@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>克拉申小游戏</title>
+    <link rel="stylesheet" type="text/css" href="../../css/common.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <script type="text/javascript" src="../../js/jquery.min.js"></script>
+    <script type="text/javascript" src="../../js/vue.js"></script>
+</head>
+<body class="page4">
+
+<div id="all">
+    <div class="container bg1" >
+        <div class="mask"></div>
+        <div class="main">
+            <div class="icon-next"></div>
+            <div class="cover"></div>
+            <div class="txt" v-show="isShowTxt"><p>{{currentData.text}}</p></div>
+        </div>
+
+        
+        <div class="matter">
+            <div class="list row">
+                <div class="box" v-for="(item, index) in faceList">
+                    <img :src="item.img" alt="" :data-id="item.id" @click="chooseFaceFun">
+                    <div class="wrong"></div>
+                </div>
+            </div>
+
+            <div class="start" @click="loadFun"></div>
+            <div class="loading"><p></p><div class="p">正在加载...</div></div>
+
+            <div class="btn-state">
+                <div class="box prev" @click="againPlay">
+                    <div class="xian"></div>
+                    <div class="sj"></div>
+                </div>
+                <div class="box next" @click="nextFun">
+                    <div class="sj"></div>
+                    <div class="xian"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <audio src="mp3/page4/s1.mp3" id="myAudio" type="audio/mpeg"></audio>
+</div>
+</body>
+
+<script>
+    var audio = document.getElementById('myAudio'); 
+    var list = [
+        { id: 1, text: 'Click on the happy faces.', face: [2,5,7]},
+        { id: 2, text: 'Click on the sad faces.', face: [4,8,9]},
+        { id: 3, text: 'Click on the angry faces.', face: [1,3,6]},
+    ]
+    vm = new Vue({
+        el: '#all',
+        data: {
+            list: list,
+            currentData: {}, //当前数据
+            currentIndex: 0, //当前数据下标
+            succNum: 0, //每题答对的个数
+            isFirst: true,
+            isShowTxt: false,
+        },
+        computed: {
+            faceList: function(){
+                var len = 9;
+                var arr = [];
+                for(var i = 1; i <= len; i++){
+                    arr.push({
+                        id: i,
+                        img: 'images/page4/face' + i + '.png'
+                    })
+                }
+                return arr;
+            },
+            musicArr: function(){
+                var arr = [];
+                for(var i = 1; i<= 3; i++){
+                    arr.push('mp3/page4/s' + i +'.mp3')
+                }
+                return arr;
+            }
+        },
+        methods: {
+            init: function(){
+                this.playFun()
+            },
+            loadFun: function(){
+                var _this = this;
+                var w = 1;
+                $('.main .cover').hide()
+                $('.matter .start').hide()
+                $('.loading').show()
+                audio.play()
+                audio.pause()
+                var inter = setInterval(function(){
+                    if(w <= 100){
+                        $('.loading p').css('width', w + '%')
+                    }else{
+                        clearInterval(inter)
+                        $('.loading').hide()
+                        setTimeout(_this.init, 100)
+                    }
+                    w += 1;
+                }, 1)
+            },
+            /*刷新*/
+            refreshFun: function(){
+                this.currentIndex = 0;
+                $('.main .icon-next').hide()
+                this.againPlay()
+            },
+            /*重播当前的*/
+            againPlay: function(){
+                $('.btn-state').hide()
+                this.playFun()
+            },
+            /*下一个*/
+            nextFun: function(){
+                this.currentIndex += 1;
+                if(this.currentIndex < this.list.length){
+                    this.againPlay()
+                }else{
+                    $('.btn-state').hide()
+                    $('.main .icon-next').show()
+                }
+            },
+            playFun: function(){
+                $('.list').addClass('fd')
+                $('.list').css('display', 'flex')
+                var obj = this.list[this.currentIndex]
+                this.currentData = obj
+                audio.src = this.musicArr[this.currentIndex]
+                audio.play()
+            },
+            chooseFaceFun: function(e){
+                /*选择face*/
+                var $img = $(e.target)
+                var id = $img.data('id')
+                var num = this.currentData.face.indexOf(id)
+                if(num >= 0){
+                    this.succNum += 1
+                    $img.hide()
+                }else{
+                    $img.next().show()
+                }
+                if(this.succNum === 3){
+                    $('.btn-state').css('display', 'flex')
+                    $('.list').hide()
+                    $('.list').removeClass('fd')
+                    $('.list .box img').show()
+                    $('.list .box .wrong').hide()
+                    this.succNum = 0
+                }
+            }
+        }
+    })
+</script>
+</html>

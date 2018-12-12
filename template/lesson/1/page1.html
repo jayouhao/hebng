@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>克拉申小游戏</title>
+    <link rel="stylesheet" type="text/css" href="../../css/common.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <script type="text/javascript" src="../../js/jquery.min.js"></script>
+    <script type="text/javascript" src="../../js/vue.js"></script>
+</head>
+<body class="page1">
+
+<div id="all">
+    <div class="container bg1" >
+        <div class="mask"></div>
+        <div class="main">
+            <div class="icon-next"></div>
+            <div class="cover"></div>
+            <div class="ren"><img :src="currentData.img" alt=""></div>
+            <div class="txt" v-show="isShowTxt"><p>{{currentData.text}}</p></div>
+        </div>
+
+        <div class="matter">
+            <div class="start" @click="loadFun"></div>
+            <div class="loading"><p></p><div class="p">正在加载...</div></div>
+
+            <div class="btn-state">
+                <div class="box prev" @click="againPlay">
+                    <div class="xian"></div>
+                    <div class="sj"></div>
+                </div>
+                <div class="box next" @click="nextFun">
+                    <div class="sj"></div>
+                    <div class="xian"></div>
+                </div>
+            </div>
+        </div>
+
+        
+    </div>
+
+    <audio src="mp3/page1/s1.mp3" id="myAudio" type="audio/mpeg"></audio>
+</div>
+</body>
+<script>
+    var audio = document.getElementById('myAudio'); 
+
+    var list = [
+        {
+            id: 1,
+            list: [
+                {text: 'This is Henry.', img: 'images/page1/ren1.png'}
+            ]
+        },
+        {
+            id: 2,
+            list: [
+                {text: 'Hi!', img: 'images/page1/ren2.png'}
+            ]
+        },
+        {
+            id: 3,
+            list: [
+                {text: 'Henry, be happy.', img: 'images/page1/ren1.png'},
+                {text: 'Henry, be sad.', img: 'images/page1/ren3.png'},
+                {text: 'Henry, be angry.', img: 'images/page1/ren4.png'},
+            ],
+            time: 3000
+        },
+        {
+            id: 4,
+            list: [
+                {text: 'Henry, be sad.', img: 'images/page1/ren3.png'},
+                {text: 'Henry, be angry.', img: 'images/page1/ren4.png'},
+                {text: 'Henry, be happy.', img: 'images/page1/ren1.png'},
+            ],
+            time: 3000
+        },
+        {
+            id: 5,
+            list: [
+                {text: 'Henry, be angry.', img: 'images/page1/ren4.png'},
+                {text: 'Henry, be happy.', img: 'images/page1/ren1.png'},
+                {text: 'Henry, be sad.', img: 'images/page1/ren3.png'},
+            ],
+            time: 3000
+        },
+        {
+            id: 6,
+            list: [
+                {text: 'Thank you Henry.', img: 'images/page1/ren1.png'}
+            ]
+        },
+        {
+            id: 7,
+            list: [
+                {text: 'Phew!', img: 'images/page1/ren5.png'},
+                {text: 'Phew!', img: 'images/page1/ren6.png'},
+            ],
+            time: 200
+        },
+    ]
+    vm = new Vue({
+        el: '#all',
+        data: {
+            list: list,
+            currentData: {}, //当前数据
+            currentIndex: 0, //当前数据下标
+            isShowTxt: false, //是否显示文字
+        },
+        computed: {
+            musicArr: function(){
+                var arr = [];
+                for(var i = 1; i<= 7; i++){
+                    arr.push('mp3/page1/s' + i +'.mp3')
+                }
+                return arr;
+            }
+        },
+        methods: {
+            init: function(){
+                $('.main .ren').show()
+                $('.main .ren').addClass('movel')
+                this.currentData = this.list[0].list[0]
+                setTimeout(this.playFun, 1000)
+            },
+            loadFun: function(){
+                var _this = this;
+                var w = 1;
+                $('.main .cover').hide()
+                $('.matter .start').hide()
+                $('.loading').show()
+                audio.play()
+                audio.pause()
+                var inter = setInterval(function(){
+                    if(w <= 100){
+                        $('.loading p').css('width', w + '%')
+                    }else{
+                        clearInterval(inter)
+                        $('.loading').hide()
+                        setTimeout(_this.init, 100)
+                    }
+                    w += 1;
+                }, 1)
+            },
+            /*刷新*/
+            refreshFun: function(){
+                this.currentIndex = 0;
+                $('.main .ren').removeClass('movel')
+                $('.main .ren').hide()
+                $('.main .icon-next').hide()
+                setTimeout(this.init, 100)
+            },
+            /*重播当前的*/
+            againPlay: function(){
+                $('.btn-state').hide()
+                this.playFun()
+            },
+            /*下一个*/
+            nextFun: function(){
+                this.currentIndex += 1;
+                $('.btn-state').hide()
+                if(this.currentIndex < this.list.length){
+                    this.againPlay()
+                }else{
+                    $('.main .icon-next').show()
+                }
+            },
+            playFun: function(){
+                var obj = this.list[this.currentIndex]
+                var _this = this;
+                var i = 0;
+                var time = obj.time || 1000;
+                this.currentData = obj.list[i]
+                audio.src = this.musicArr[this.currentIndex]
+                audio.play()
+                interval = setInterval(function(){
+                    i++
+                    if(i === obj.list.length){
+                        clearInterval(interval)
+                         $('.btn-state').css('display', 'flex')
+                         // if(_this.currentIndex === _this.list.length - 1){
+                         //    $('.main .icon-next').show()
+                         // }
+                    }else{
+                        _this.currentData = obj.list[i]
+                    }
+                }, time)
+            }
+        }
+    })
+   
+</script>
+
+</html>

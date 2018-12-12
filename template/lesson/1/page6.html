@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>克拉申小游戏</title>
+    <link rel="stylesheet" type="text/css" href="../../css/common.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <script type="text/javascript" src="../../js/jquery.min.js"></script>
+    <script type="text/javascript" src="../../js/vue.js"></script>
+</head>
+<body class="page6">
+
+<div id="all">
+    <div class="container bg2" >
+        <div class="mask"></div>
+        <div class="main">
+            <div class="icon-next"></div>
+            <div class="cover"></div>
+        </div>
+
+        <div class="matter">
+            <canvas id="myCanvas"></canvas>
+
+            <div class="word" v-show="isShowTxt"><p>{{currentData.text}}</p></div>
+            <div class="start" @click="loadFun"></div>
+            <div class="loading"><p></p><div class="p">正在加载...</div></div>
+
+            <div class="btn-state">
+                <div class="box prev" @click="againPlay">
+                    <div class="xian"></div>
+                    <div class="sj"></div>
+                </div>
+                <div class="box next" @click="nextFun">
+                    <div class="sj"></div>
+                    <div class="xian"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <audio src="mp3/page6/s1.mp3" id="myAudio" type="audio/mpeg"></audio>
+    <audio src="mp3/page6/fail.mp3" id="failAudio" type="audio/mpeg"></audio>
+    <audio src="mp3/page6/succ.mp3" id="succAudio" type="audio/mpeg"></audio>
+</div>
+</body>
+<script>
+    audio = document.getElementById('myAudio'); 
+    failAudio = document.getElementById('failAudio')
+    succAudio = document.getElementById('succAudio')
+    var list = [
+        {id: 1, text: 'Pop the blue balloon.'},
+        {id: 2, text: 'Pop the yellow balloon.'},
+        {id: 3, text: 'Pop the orange balloon.'},
+        {id: 4, text: 'Pop the red balloon.'},
+        {id: 5, text: 'Pop the green balloon.'},
+        {id: 6, text: 'Pop the purple balloon.'},
+    ]
+    vm = new Vue({
+        el: '#all',
+        data: {
+            list: list,
+            currentData: {}, //当前数据
+            currentIndex: 0, //当前数据下标
+            isShowTxt: false,
+        },
+        computed: {
+            musicArr: function(){
+                var arr = [];
+                for(var i = 1; i<= 6; i++){
+                    arr.push('mp3/page6/s' + i +'.mp3')
+                }
+                return arr;
+            }
+        },
+        methods: {
+            init: function(){
+                $(canvas).addClass('cur')
+                $(canvas).css('opacity', 1)
+                this.playFun()
+            },
+            loadFun: function(){
+                var _this = this;
+                var w = 1;
+                $('.main .cover').hide()
+                $('.matter .start').hide()
+                $('.loading').show()
+                audio.play()
+                audio.pause()
+                var inter = setInterval(function(){
+                    if(w <= 100){
+                        $('.loading p').css('width', w + '%')
+                    }else{
+                        clearInterval(inter)
+                        $('.loading').hide()
+                        setTimeout(_this.init, 100)
+                    }
+                    w += 1;
+                }, 1)
+            },
+            /*刷新*/
+            refreshFun: function(){
+                this.currentIndex = 0;
+                $('.main .icon-next').hide()
+                this.againPlay()
+            },
+            /*重播当前的*/
+            againPlay: function(){
+                $('.btn-state').hide()
+                this.playFun()
+                initAnim()
+            },
+            /*下一个*/
+            nextFun: function(){
+                this.currentIndex += 1;
+                if(this.currentIndex < this.list.length){
+                    this.againPlay()
+                }else{
+                    $('.btn-state').hide()
+                    $('.main .icon-next').show()
+                }
+            },
+            playFun: function(){
+                var obj = this.list[this.currentIndex]
+                var _this = this;
+                var i = 0;
+                var time = obj.time || 1000;
+                this.currentData = obj
+                audio.src = this.musicArr[this.currentIndex]
+                audio.play()
+                succ_fl = false;
+            }
+        }
+    })
+</script>
+
+<script>
+
+init()
+
+function init(){
+    canvas = document.getElementById("myCanvas");
+    ctx = canvas.getContext("2d");
+    var width = $('.main').width()
+    canvas.height = $('.main').height();
+    canvas.width = $('.main').width();
+    $(canvas).css('opacity', 0)
+
+//[5, 1, 4, 2, 6, 3]
+//页面排列气球的顺序
+    ballArr = [
+        {id: 5, w: 210, h: 238, x: 234, y: 100},
+        {id: 1, w: 210, h: 238, x: 410, y: 152},
+        {id: 4, w: 210, h: 238, x: 584, y: 100},
+        {id: 2, w: 263, h: 298, x: 160, y: 270},
+        {id: 6, w: 263, h: 298, x: 388, y: 330},
+        {id: 3, w: 263, h: 298, x: 606, y: 270},
+    ]
+    
+    var i = 0;
+    drawImg()
+    function drawImg(){
+        if(i === ballArr.length){
+            return;
+        }
+        var img_a = new Image()
+        var img = new Image();
+        img.onload = function(){
+            ballArr[i].img = img;
+            ballArr[i].img_a = img_a;
+            ctx.drawImage(img, ballArr[i].x, ballArr[i].y, ballArr[i].w, ballArr[i].h)
+            i++;
+            drawImg()
+        }
+        img_a.src = 'images/page6/ball'+ ballArr[i].id +'_a.png';
+        img.src = 'images/page6/ball'+ ballArr[i].id +'.png';
+    }
+}
+
+$('#myCanvas').on('click', function(event){
+    if(!$(this).hasClass('cur')){
+        return
+    }
+    var rect = this.getBoundingClientRect();
+    var x = event.clientX - rect.left;
+    var y = event.clientY - rect.top;
+    // rgbaPicker就是点击像素点的颜色信息
+    rgbaPicker = ctx.getImageData(x, y, 1, 1).data;
+    // console.log(rgbaPicker);
+    var flag = true; //true:点在气球上 
+    if(rgbaPicker.join('') === '0000'){
+        flag = false;
+    }
+    if(flag){
+        var x1 = event.clientX - $(this).offset().left;
+        var y1 = event.clientY - $(this).offset().top;
+        var id = getPostId(x1, y1);
+        if(id){
+            if(id === vm.$data.currentData.id){
+                succFun()
+            }else{
+                failFun(id)
+            }
+        }
+    }
+})
+
+
+function succFun(){
+    succAudio.play()
+    succ_num = 10;
+    succ_fl = true
+    succAnim()
+}
+function failFun(id){
+    failAudio.play()
+    failh = 1; //运动时加的数据
+    fail_fl = true; //加还是减
+    fail_id = id;
+
+    failAnim()
+}
+
+
+//成功动画
+function succAnim(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    var i = 0;
+    drawImg()
+    function drawImg(){
+        if(i === ballArr.length){
+            if(succ_num > 0){
+                requestAnimationFrame(succAnim);
+            }else{
+                $('.btn-state').css('display', 'flex')
+            }
+            return;
+        }
+        if(vm.$data.currentData.id === ballArr[i].id){
+            if(succ_num > 4){
+                ctx.drawImage(ballArr[i].img_a, ballArr[i].x, ballArr[i].y, ballArr[i].w, ballArr[i].h)
+            }
+            succ_num--;
+        }else{
+            ctx.drawImage(ballArr[i].img, ballArr[i].x, ballArr[i].y, ballArr[i].w, ballArr[i].h)
+        }
+        i++;
+        drawImg()
+    }
+}
+
+
+//失败动画
+function failAnim(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    var i = 0;
+    drawImg()
+    function drawImg(){
+        if(i === ballArr.length){
+            if(failh > 0){
+                requestAnimationFrame(failAnim);
+            }
+            return;
+        }
+        var img = ballArr[i].img
+        if(fail_id === ballArr[i].id){
+            var y = ballArr[i].y + failh;
+            var h = ballArr[i].h + failh * 2;
+            ctx.drawImage(img, ballArr[i].x, y, ballArr[i].w, h)
+            if(fail_fl){
+                failh++;
+            }else{
+                failh--;
+            }
+            if(failh === 15){
+                fail_fl = false;
+            }
+        }else if(succ_fl && vm.$data.currentData.id === ballArr[i].id){
+            
+        }else{
+            ctx.drawImage(img, ballArr[i].x, ballArr[i].y, ballArr[i].w, ballArr[i].h)
+        }
+        i++;
+        drawImg()
+    }
+}
+
+//初始动画
+function initAnim(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    var i = 0;
+    drawImg()
+    function drawImg(){
+        if(i === ballArr.length){
+            return;
+        }
+        var img = ballArr[i].img
+        ctx.drawImage(img, ballArr[i].x, ballArr[i].y, ballArr[i].w, ballArr[i].h)
+        i++;
+        drawImg()
+    }
+}
+
+//是否点在图片上
+function getPostId(x1, y1){
+    var id = '';
+    for(var i = 0; i < ballArr.length; i++){
+        var obj = ballArr[i];
+        if(x1 > obj.x && x1 < obj.x + obj.w && y1 > obj.y && y1 < obj.y + obj.h){
+            id = obj.id;
+        }
+    }
+    return id;
+}
+
+</script>
+</html>
