@@ -34,8 +34,8 @@
     }
     .page-home .all .home-start .img{
         width: 689px;
-        height: 342px;
-        top: 33px;
+        height: 340px;
+        top: 20px;
        }
        .page-home .home-main .logo{
         width: 118px;
@@ -67,7 +67,7 @@
         width: 50px;
         font-size: 20px;
         height: 31px;
-        margin-right: 8px;
+        margin-right: 6px;
         margin-top: 17px;
         line-height: 30px;
        }
@@ -75,8 +75,8 @@
         width: 85px;
         font-size: 14px;
         margin-top: 18px;
-        position: relative;
-        left: 68px;
+        /* position: relative;
+        left: 68px; */
         height: 33px;
         line-height: 32px;
        }
